@@ -37,7 +37,6 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("apm.https_client_certificate",      NULL,               PHP_INI_ALL,    OnUpdateString,                https_client_certificate,      zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.https_client_key",              NULL,               PHP_INI_ALL,    OnUpdateString,                https_client_key,              zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.https_certificate_authorities", NULL,               PHP_INI_ALL,    OnUpdateString,                https_certificate_authorities, zend_apm_http_globals, apm_http_globals)
-	STD_PHP_INI_BOOLEAN("apm.https_verify_peer",           "0",                PHP_INI_ALL,    OnUpdateBool,                  https_verify_peer,             zend_apm_http_globals, apm_http_globals)
 PHP_INI_END()
 
 /* Insert an event in the backend */
@@ -88,9 +87,21 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
              CURLFORM_END);
     
     headerlist = curl_slist_append(headerlist, buf);
-    curl_easy_setopt(curl, CURLOPT_URL, APM_HTTP_G(http_server));
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+    
+    curl_easy_setopt(curl, CURLOPT_URL, APM_HTTP_G(http_server));    
+    if (APM_HTTP_G(https_client_certificate) != NULL) {
+      curl_easy_setopt(curl, CURLOPT_CAINFO, APM_HTTP_G(https_client_certificate));
+    }
+    if (APM_HTTP_G(https_client_key) != NULL) {
+      curl_easy_setopt(curl, CURLOPT_SSLKEY, APM_HTTP_G(https_client_key));
+    }
+    if (APM_HTTP_G(https_certificate_authorities) != NULL) {
+      curl_easy_setopt(curl, CURLOPT_CAINFO, APM_HTTP_G(https_certificate_authorities));
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+    }
+    
     res = curl_easy_perform(curl);
  
     /* always cleanup */ 

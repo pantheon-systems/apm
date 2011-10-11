@@ -43,7 +43,6 @@ ZEND_BEGIN_MODULE_GLOBALS(apm_http)
 	char *    https_client_certificate;
 	char *    https_client_key;
 	char *    https_certificate_authorities;
-	char *    https_verify_peer;
 ZEND_END_MODULE_GLOBALS(apm_http)
 
 #ifdef ZTS

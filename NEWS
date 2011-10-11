@@ -8,7 +8,7 @@ APM 1.0.0beta3    7 Nov 2010
 Added:
 - MySQL driver
 - Per driver error reporting level
-- Asynchronous processing of events (config option: apm.deffered_processing)
+- Asynchronous processing of events (config option: apm.deferred_processing)
 
 Changed:
 - Code refactored to make use of 'APM drivers'

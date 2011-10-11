@@ -52,6 +52,8 @@ Fixed:
    <file name="driver_mysql.h" role="src" />
    <file name="driver_sqlite3.c" role="src" />
    <file name="driver_sqlite3.h" role="src" />
+   <file name="driver_http.c" role="src" />
+   <file name="driver_http.h" role="src" />
    <file name="php_apm.h" role="src" />
    <dir name="web">
     <file name="apm.php" role="php" />
@@ -183,7 +185,7 @@ Fixed:
 Added:
 - MySQL driver
 - Per driver error reporting level
-- Asynchronous processing of events (config option: apm.deffered_processing)
+- Asynchronous processing of events (config option: apm.deferred_processing)
 
 Changed:
 - Code refactored to make use of 'APM drivers'

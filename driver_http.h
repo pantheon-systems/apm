@@ -12,7 +12,7 @@
  | obtain it through the world-wide-web, please send a note to          |
  | license@php.net so we can mail you a copy immediately.               |
  +----------------------------------------------------------------------+
- | Authors: Davide Mendolia <dmendolia@php.net>                         |
+ | Authors: David Strauss <david@davidstrauss.net>                      |
  |          Patrick Allaert <patrickallaert@php.net>                    |
  +----------------------------------------------------------------------+
 */
@@ -21,11 +21,8 @@
 #define DRIVER_HTTP_H
 
 #include <curl/curl.h>
-#include "zend_API.h"
 
 #define APM_E_http APM_E_ALL
-
-#define DB_FILE "events"
 
 apm_driver_entry * apm_driver_http_create();
 void apm_driver_http_insert_event(int type, char * error_filename, uint error_lineno, char * msg, char * trace TSRMLS_DC);
@@ -35,8 +32,6 @@ int apm_driver_http_rinit();
 int apm_driver_http_mshutdown();
 int apm_driver_http_rshutdown();
 void apm_driver_http_insert_slow_request(float duration, char * script_filename);
-
-PHP_FUNCTION(hello_world);
 
 /* Extension globals */
 ZEND_BEGIN_MODULE_GLOBALS(apm_http)

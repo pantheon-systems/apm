@@ -43,6 +43,11 @@
 #ifdef APM_DRIVER_MYSQL
   #include "driver_mysql.h"
 #endif
+#ifdef APM_DRIVER_HTTP
+  #include "driver_http.h"
+#endif
+
+#include <stdio.h>
 
 ZEND_DECLARE_MODULE_GLOBALS(apm);
 static PHP_GINIT_FUNCTION(apm);
@@ -120,8 +125,8 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("apm.slow_request_enabled", "1",   PHP_INI_ALL, OnUpdateBool, slow_request_enabled,  zend_apm_globals, apm_globals)
 	/* Boolean controlling whether the the stacktrace should be generated or not */
 	STD_PHP_INI_BOOLEAN("apm.stacktrace_enabled",   "1",   PHP_INI_ALL, OnUpdateBool, stacktrace_enabled,    zend_apm_globals, apm_globals)
-	/* Boolean controlling whether the processing of events by drivers should be deffered at the end of the request */
-	STD_PHP_INI_BOOLEAN("apm.deffered_processing",  "1",   PHP_INI_PERDIR, OnUpdateBool, deffered_processing,zend_apm_globals, apm_globals)
+	/* Boolean controlling whether the processing of events by drivers should be deferred at the end of the request */
+	STD_PHP_INI_BOOLEAN("apm.deferred_processing",  "0",   PHP_INI_PERDIR, OnUpdateBool, deferred_processing,zend_apm_globals, apm_globals)
 	/* Time (in ms) before a request is considered 'slow' */
 	STD_PHP_INI_ENTRY("apm.slow_request_duration",  "100", PHP_INI_ALL, OnUpdateLong, slow_request_duration, zend_apm_globals, apm_globals)
 PHP_INI_END()
@@ -264,7 +269,7 @@ PHP_RSHUTDOWN_FUNCTION(apm)
 			}
 		}
 
-		if (APM_G(deffered_processing) && APM_G(events) != *APM_G(last_event)) {
+		if (APM_G(deferred_processing) && APM_G(events) != *APM_G(last_event)) {
 			driver_entry = APM_G(drivers);
 			while ((driver_entry = driver_entry->next) != NULL) {
 				if (driver_entry->driver.is_enabled()) {
@@ -363,7 +368,9 @@ void apm_throw_exception_hook(zval *exception TSRMLS_DC)
 /* Insert an event in the backend */
 static void insert_event(int type, char * error_filename, uint error_lineno, char * msg TSRMLS_DC)
 {
-	smart_str trace_str = {0};
+	printf("Inserting event.\n");
+  
+  smart_str trace_str = {0};
 	apm_driver_entry * driver_entry;
 
 	if (APM_G(stacktrace_enabled)) {
@@ -371,7 +378,7 @@ static void insert_event(int type, char * error_filename, uint error_lineno, cha
 		smart_str_0(&trace_str);
 	}
 
-	if (APM_G(deffered_processing)) {
+	if (APM_G(deferred_processing)) {
 		(*APM_G(last_event))->next = (apm_event_entry *) malloc(sizeof(apm_event_entry));
 		(*APM_G(last_event))->next->event.type = type;
 

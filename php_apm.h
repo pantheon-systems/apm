@@ -142,7 +142,7 @@ ZEND_BEGIN_MODULE_GLOBALS(apm)
 	/* Boolean controlling whether the the stacktrace should be generated or not */
 	zend_bool stacktrace_enabled;
 	/* Boolean controlling whether the processing of events by drivers should be deffered at the end of the request */
-	zend_bool deffered_processing;
+	zend_bool deferred_processing;
 	/* Time (in ms) before a request is considered 'slow' */
 	long      slow_request_duration;
 	apm_driver_entry *drivers;

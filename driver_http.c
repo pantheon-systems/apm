@@ -22,14 +22,6 @@
 #include "php_ini.h"
 #include "driver_http.h"
 
-static int event_callback_html(void *data, int num_fields, char **fields, char **col_name);
-static int event_callback_event_info(void *info, int num_fields, char **fields, char **col_name);
-static int event_callback_json(void *data, int num_fields, char **fields, char **col_name);
-static int slow_request_callback_html(void *data, int num_fields, char **fields, char **col_name);
-static int slow_request_callback_json(void *data, int num_fields, char **fields, char **col_name);
-static int event_callback_count(void *count, int num_fields, char **fields, char **col_name);
-static long get_table_count(char * table);
-
 ZEND_EXTERN_MODULE_GLOBALS(apm)
 
 ZEND_DECLARE_MODULE_GLOBALS(apm_http)
@@ -42,8 +34,28 @@ PHP_INI_BEGIN()
 	/* error_reporting of the driver */
 	STD_PHP_INI_ENTRY("apm.http_error_reporting",          NULL,              PHP_INI_ALL,    OnUpdateAPMhttpErrorReporting,   error_reporting, zend_apm_http_globals, apm_http_globals)
 	/* Max timeout to wait for storing the event */
-	STD_PHP_INI_ENTRY("apm.http_request_timeout", "100",             PHP_INI_ALL,    OnUpdateLong,   timeout,         zend_apm_http_globals, apm_http_globals)
+	STD_PHP_INI_ENTRY("apm.http_request_timeout",          "100",             PHP_INI_ALL,    OnUpdateLong,   timeout,         zend_apm_http_globals, apm_http_globals)
 PHP_INI_END()
+
+void apm_test_http_internal() {
+  CURL *curl;
+  CURLcode res;
+  
+  curl = curl_easy_init();
+  if(curl) {
+    struct curl_slist *chunk = NULL;
+    chunk = curl_slist_append(chunk, "Content-Type: application/json");
+    
+    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9000");
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "Hello, Twisted!");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    res = curl_easy_perform(curl);
+ 
+    /* always cleanup */ 
+    curl_easy_cleanup(curl);
+  }  
+}
 
 /* Insert an event in the backend */
 void apm_driver_http_insert_event(int type, char * error_filename, uint error_lineno, char * msg, char * trace TSRMLS_DC)
@@ -53,9 +65,13 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
   
   curl = curl_easy_init();
   if(curl) {
-    // @TODO: Record event here.
+    struct curl_slist *chunk = NULL;
+    chunk = curl_slist_append(chunk, "Content-Type: application/json");
+    
     curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9000");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, msg);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
     res = curl_easy_perform(curl);
  
     /* always cleanup */ 
@@ -66,6 +82,7 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
 void apm_driver_http_insert_events(apm_event_entry * event_entry TSRMLS_DC)
 {
 	apm_event_entry * event_entry_cursor = event_entry;
+  apm_test_http_internal();
 	while ((event_entry_cursor = event_entry_cursor->next) != NULL) {
 		if (event_entry_cursor->event.type & apm_driver_http_error_reporting()) {
 			apm_driver_http_insert_event(event_entry_cursor->event.type, event_entry_cursor->event.error_filename, event_entry_cursor->event.error_lineno, event_entry_cursor->event.msg, event_entry_cursor->event.trace TSRMLS_CC);
@@ -103,21 +120,5 @@ void apm_driver_http_insert_slow_request(float duration, char * script_filename)
    Sends a test POST to the configured HTTP server. */
 PHP_FUNCTION(apm_test_http)
 {
-  CURL *curl;
-  CURLcode res;
-  
-  curl = curl_easy_init();
-  if(curl) {
-    struct curl_slist *chunk = NULL;
-    chunk = curl_slist_append(chunk, "Content-Type: application/json");
-    
-    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9000");
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "Hello, Twisted!");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-    res = curl_easy_perform(curl);
- 
-    /* always cleanup */ 
-    curl_easy_cleanup(curl);
-  }
+  apm_test_http_internal();
 }

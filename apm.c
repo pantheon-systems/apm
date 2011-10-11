@@ -80,6 +80,9 @@ zend_function_entry apm_functions[] = {
 		PHP_FE(apm_get_mysql_slow_requests_count, NULL)
 		PHP_FE(apm_get_mysql_event_info, NULL)
 #endif
+#ifdef APM_DRIVER_HTTP
+		PHP_FE(apm_test_http, NULL)
+#endif
 	{NULL, NULL, NULL}
 };
 

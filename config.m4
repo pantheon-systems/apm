@@ -29,9 +29,11 @@ AC_DEFUN([MYSQL_LIB_CHK], [
 PHP_ARG_ENABLE(apm, whether to enable apm support,
 [  --enable-apm            Enable apm support], yes)
 PHP_ARG_WITH(sqlite3, enable support for sqlite3,
-[  --with-sqlite3=DIR      Location of sqlite3 library], yes, no)
+[  --with-sqlite3=SQLITE3DIR      Location of sqlite3 library], yes, no)
 PHP_ARG_WITH(mysql, enable support for MySQL,
-[  --with-mysql=DIR        Location of MySQL base directory], no, no)
+[  --with-mysql=MYSQLDIR        Location of MySQL base directory], no, no)
+PHP_ARG_WITH(curl, for cURL support,
+[  --with-curl[=DIR]       Include cURL support for HTTP reporting])
 
 if test -z "$PHP_ZLIB_DIR"; then
   PHP_ARG_WITH(zlib-dir, for the location of libz, 
@@ -151,6 +153,39 @@ if test "$PHP_APM" != "no"; then
     AC_DEFINE(HAVE_MYSQL,1,[MySQL found and included])
   fi
 
-  PHP_NEW_EXTENSION(apm, apm.c backtrace.c $sqlite3_driver $mysql_driver, $ext_shared)
+  if test "$PHP_CURL" != "no"; then
+    http_driver="driver_http.c"
+    AC_DEFINE(APM_DRIVER_HTTP, 1, [activate HTTP sending driver])
+    AC_DEFINE(HAVE_HTTP, 1, [HTTP found and included])
+
+    if test -r $PHP_CURL/include/curl/easy.h; then
+      CURL_DIR=$PHP_CURL
+    else
+      AC_MSG_CHECKING(for cURL in default path)
+      for i in /usr/local /usr; do
+        if test -r $i/include/curl/easy.h; then
+          CURL_DIR=$i
+          AC_MSG_RESULT(found in $i)
+          break
+        fi
+      done
+    fi
+
+    PHP_ADD_INCLUDE($CURL_DIR/include)
+    PHP_EVAL_LIBLINE($CURL_LIBS, APM_SHARED_LIBADD)
+    PHP_ADD_LIBRARY_WITH_PATH(curl, $CURL_DIR/$PHP_LIBDIR, APM_SHARED_LIBADD)
+    
+    PHP_CHECK_LIBRARY(curl,curl_easy_perform, 
+      [ 
+        AC_DEFINE(HAVE_CURL,1,[ ])
+      ],[
+        AC_MSG_ERROR(There is something wrong. Please check config.log for more information.)
+      ],[
+        $CURL_LIBS -L$CURL_DIR/$PHP_LIBDIR
+      ])
+    
+  fi
+
+  PHP_NEW_EXTENSION(apm, apm.c backtrace.c $sqlite3_driver $mysql_driver $http_driver, $ext_shared)
   PHP_SUBST(APM_SHARED_LIBADD)
 fi

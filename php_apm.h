@@ -127,6 +127,9 @@ PHP_FUNCTION(apm_get_mysql_events_count);
 PHP_FUNCTION(apm_get_mysql_slow_requests_count);
 PHP_FUNCTION(apm_get_mysql_event_info);
 #endif
+#ifdef APM_DRIVER_HTTP
+PHP_FUNCTION(apm_test_http);
+#endif
 
 /* Extension globals */
 ZEND_BEGIN_MODULE_GLOBALS(apm)

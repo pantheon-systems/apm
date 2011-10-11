@@ -31,11 +31,15 @@ APM_DRIVER_CREATE(http)
 
 PHP_INI_BEGIN()
 	/* Boolean controlling whether the driver is active or not */
-	STD_PHP_INI_BOOLEAN("apm.http_enabled",                "1",               PHP_INI_PERDIR, OnUpdateBool,   enabled,         zend_apm_http_globals, apm_http_globals)
+	STD_PHP_INI_BOOLEAN("apm.http_enabled",                "1",                PHP_INI_PERDIR, OnUpdateBool,   enabled,         zend_apm_http_globals, apm_http_globals)
 	/* error_reporting of the driver */
-	STD_PHP_INI_ENTRY("apm.http_error_reporting",          NULL,              PHP_INI_ALL,    OnUpdateAPMhttpErrorReporting,   error_reporting, zend_apm_http_globals, apm_http_globals)
+	STD_PHP_INI_ENTRY("apm.http_error_reporting",          NULL,               PHP_INI_ALL,    OnUpdateAPMhttpErrorReporting,   error_reporting, zend_apm_http_globals, apm_http_globals)
 	/* Max timeout to wait for storing the event */
-	STD_PHP_INI_ENTRY("apm.http_request_timeout",          "100",             PHP_INI_ALL,    OnUpdateLong,   timeout,         zend_apm_http_globals, apm_http_globals)
+	STD_PHP_INI_ENTRY("apm.http_request_timeout",          "100",              PHP_INI_ALL,    OnUpdateLong,   timeout,         zend_apm_http_globals, apm_http_globals)
+
+	//STD_PHP_INI_ENTRY("apm.http_server",                   "http://localhost", PHP_INI_ALL,    OnUpdateDBFile, db_path,         zend_apm_sqlite3_globals, apm_sqlite3_globals)
+	//STD_PHP_INI_ENTRY("apm.https_client_certificate",      NULL,               PHP_INI_ALL,    OnUpdateDBFile, db_path,         zend_apm_sqlite3_globals, apm_sqlite3_globals)
+	//STD_PHP_INI_ENTRY("apm.https_certificate_authorities", NULL,               PHP_INI_ALL,    OnUpdateDBFile, db_path,         zend_apm_sqlite3_globals, apm_sqlite3_globals)
 PHP_INI_END()
 
 void apm_test_http_internal() {
@@ -50,6 +54,9 @@ void apm_test_http_internal() {
     chunk = curl_slist_append(chunk, "Content-Type: application/json");
     
     curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9000");
+    
+    //curl_easy_setopt(curl,CURLOPT_SSLCERT,pCertFile);
+    
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "Hello, Twisted!");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -66,15 +73,51 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
   CURL *curl;
   CURLcode res;
   
+  curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   if(curl) {
-    struct curl_slist *chunk = NULL;
-    chunk = curl_slist_append(chunk, "Content-Type: application/json");
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    struct curl_slist *headerlist = NULL;
+    static const char buf[] = "Expect:";
+    char int2string[64];
     
+    sprintf(int2string, "%d", type);
+    curl_formadd(&formpost,
+             &lastptr,
+             CURLFORM_COPYNAME, "type",
+             CURLFORM_COPYCONTENTS, int2string,
+             CURLFORM_END);
+
+    curl_formadd(&formpost,
+             &lastptr,
+             CURLFORM_COPYNAME, "file",
+             CURLFORM_COPYCONTENTS, error_filename ? error_filename : "",
+             CURLFORM_END);
+
+    sprintf(int2string, "%d", error_lineno);
+    curl_formadd(&formpost,
+             &lastptr,
+             CURLFORM_COPYNAME, "line",
+             CURLFORM_COPYCONTENTS, int2string,
+             CURLFORM_END);
+
+    curl_formadd(&formpost,
+             &lastptr,
+             CURLFORM_COPYNAME, "message",
+             CURLFORM_COPYCONTENTS, msg ? msg : "",
+             CURLFORM_END);
+
+    curl_formadd(&formpost,
+             &lastptr,
+             CURLFORM_COPYNAME, "backtrace",
+             CURLFORM_COPYCONTENTS, trace ? trace : "",
+             CURLFORM_END);
+    
+    headerlist = curl_slist_append(headerlist, buf);
     curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9000");
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, msg);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
     res = curl_easy_perform(curl);
  
     /* always cleanup */ 

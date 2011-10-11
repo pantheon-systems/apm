@@ -3,7 +3,6 @@ Makefile*
 *.m4
 autom4te.cache/
 build/
-config.*
 configure*
 install-sh
 libtool
@@ -15,4 +14,10 @@ run-tests.php
 *.la
 *.lo
 modules/
-
+config.guess
+config.h
+config.h.in
+config.log
+config.nice
+config.status
+config.sub

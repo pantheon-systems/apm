@@ -37,18 +37,19 @@ void apm_driver_http_insert_slow_request(float duration, char * script_filename)
 ZEND_BEGIN_MODULE_GLOBALS(apm_http)
 	/* Boolean controlling whether the driver is active or not */
 	zend_bool enabled;
-
-	/* Driver error reporting */
-	int     error_reporting;
-
-	/* Max timeout to wait for the HTTP POST request */
-	long      timeout;
+	int       error_reporting;
+	long      http_request_timeout;
+	char *    http_server;
+	char *    https_client_certificate;
+	char *    https_client_key;
+	char *    https_certificate_authorities;
+	char *    https_verify_peer;
 ZEND_END_MODULE_GLOBALS(apm_http)
 
 #ifdef ZTS
-#define APM_S3_G(v) TSRMG(apm_http_globals_id, zend_apm_http_globals *, v)
+#define APM_HTTP_G(v) TSRMG(apm_http_globals_id, zend_apm_http_globals *, v)
 #else
-#define APM_S3_G(v) (apm_http_globals.v)
+#define APM_HTTP_G(v) (apm_http_globals.v)
 #endif
 
 #endif

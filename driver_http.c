@@ -92,7 +92,7 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
     
     curl_easy_setopt(curl, CURLOPT_URL, APM_HTTP_G(http_server));    
     if (APM_HTTP_G(https_client_certificate) != NULL) {
-      curl_easy_setopt(curl, CURLOPT_CAINFO, APM_HTTP_G(https_client_certificate));
+      curl_easy_setopt(curl, CURLOPT_SSLCERT, APM_HTTP_G(https_client_certificate));
     }
     if (APM_HTTP_G(https_client_key) != NULL) {
       curl_easy_setopt(curl, CURLOPT_SSLKEY, APM_HTTP_G(https_client_key));

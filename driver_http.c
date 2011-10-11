@@ -21,6 +21,7 @@
 #include "php_apm.h"
 #include "php_ini.h"
 #include "driver_http.h"
+#include <stdio.h>
 
 ZEND_EXTERN_MODULE_GLOBALS(apm)
 
@@ -38,6 +39,8 @@ PHP_INI_BEGIN()
 PHP_INI_END()
 
 void apm_test_http_internal() {
+  printf("> apm_test_http_internal\n");
+  
   CURL *curl;
   CURLcode res;
   

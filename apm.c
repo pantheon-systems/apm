@@ -152,6 +152,10 @@ static PHP_GINIT_FUNCTION(apm)
 	*next = apm_driver_mysql_create();
 	next = &(*next)->next;
 #endif
+#ifdef APM_DRIVER_HTTP
+	*next = apm_driver_http_create();
+	next = &(*next)->next;
+#endif
 
 	apm_globals->events = (apm_event_entry *) malloc(sizeof(apm_event_entry));
 	apm_globals->events->event.type = 0;
@@ -318,8 +322,8 @@ PHP_MINFO_FUNCTION(apm)
    This function provides a hook for error */
 void apm_error_cb(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args)
 {
-	TSRMLS_FETCH();
-	
+	TSRMLS_FETCH();	
+  
 	if (APM_G(event_enabled)) {
 		char *msg;
 		va_list args_copy;
@@ -368,8 +372,6 @@ void apm_throw_exception_hook(zval *exception TSRMLS_DC)
 /* Insert an event in the backend */
 static void insert_event(int type, char * error_filename, uint error_lineno, char * msg TSRMLS_DC)
 {
-	printf("Inserting event.\n");
-  
   smart_str trace_str = {0};
 	apm_driver_entry * driver_entry;
 

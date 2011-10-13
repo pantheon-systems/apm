@@ -149,5 +149,5 @@ void apm_driver_http_insert_slow_request(float duration, char * script_filename)
    Sends a test POST to the configured HTTP server. */
 PHP_FUNCTION(apm_test_http)
 {
-  apm_driver_http_insert_event(1, "FILE", 123, "MESSAGE", "TRACE");
+  apm_driver_http_insert_event(1, "/path/to/file.php", 123, "Some Error Msg", "#0 some_function() called by [/path/to/file.php:123]");
 }

@@ -32,7 +32,7 @@ APM_DRIVER_CREATE(http)
 PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("apm.http_enabled",                "1",                PHP_INI_PERDIR, OnUpdateBool,                  enabled,                       zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.http_error_reporting",          NULL,               PHP_INI_ALL,    OnUpdateAPMhttpErrorReporting, error_reporting,               zend_apm_http_globals, apm_http_globals)
-	STD_PHP_INI_ENTRY("apm.http_request_timeout",          "100",              PHP_INI_ALL,    OnUpdateLong,                  http_request_timeout,          zend_apm_http_globals, apm_http_globals)
+	STD_PHP_INI_ENTRY("apm.http_request_timeout",          "1000",             PHP_INI_ALL,    OnUpdateLong,                  http_request_timeout,          zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.http_server",                   "http://localhost", PHP_INI_ALL,    OnUpdateString,                http_server,                   zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.https_client_certificate",      NULL,               PHP_INI_ALL,    OnUpdateString,                https_client_certificate,      zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.https_client_key",              NULL,               PHP_INI_ALL,    OnUpdateString,                https_client_key,              zend_apm_http_globals, apm_http_globals)
@@ -91,6 +91,7 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
     
     curl_easy_setopt(curl, CURLOPT_URL, APM_HTTP_G(http_server));    
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, APM_HTTP_G(http_request_timeout));
     if (APM_HTTP_G(https_client_certificate) != NULL) {
       curl_easy_setopt(curl, CURLOPT_SSLCERT, APM_HTTP_G(https_client_certificate));
     }

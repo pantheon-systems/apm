@@ -32,6 +32,7 @@ int apm_driver_http_rinit();
 int apm_driver_http_mshutdown();
 int apm_driver_http_rshutdown();
 void apm_driver_http_insert_slow_request(float duration, char * script_filename);
+char * truncate_trace (const char * input_str, long str_len);
 
 /* Extension globals */
 ZEND_BEGIN_MODULE_GLOBALS(apm_http)
@@ -43,6 +44,7 @@ ZEND_BEGIN_MODULE_GLOBALS(apm_http)
 	char *    https_client_certificate;
 	char *    https_client_key;
 	char *    https_certificate_authorities;
+	long      http_max_backtrace_length;
 ZEND_END_MODULE_GLOBALS(apm_http)
 
 #ifdef ZTS

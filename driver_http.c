@@ -37,6 +37,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("apm.https_client_certificate",      NULL,               PHP_INI_ALL,    OnUpdateString,                https_client_certificate,      zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.https_client_key",              NULL,               PHP_INI_ALL,    OnUpdateString,                https_client_key,              zend_apm_http_globals, apm_http_globals)
 	STD_PHP_INI_ENTRY("apm.https_certificate_authorities", NULL,               PHP_INI_ALL,    OnUpdateString,                https_certificate_authorities, zend_apm_http_globals, apm_http_globals)
+	STD_PHP_INI_ENTRY("apm.http_max_backtrace_length",     "-1",               PHP_INI_ALL,    OnUpdateLong,                  http_max_backtrace_length,     zend_apm_http_globals, apm_http_globals)
 PHP_INI_END()
 
 /* Insert an event in the backend */
@@ -83,7 +84,7 @@ void apm_driver_http_insert_event(int type, char * error_filename, uint error_li
     curl_formadd(&formpost,
              &lastptr,
              CURLFORM_COPYNAME, "backtrace",
-             CURLFORM_COPYCONTENTS, trace ? trace : "",
+             CURLFORM_COPYCONTENTS, truncate_trace(trace ? trace : "", APM_HTTP_G(http_max_backtrace_length)),
              CURLFORM_END);
     
     headerlist = curl_slist_append(headerlist, buf);
@@ -144,6 +145,32 @@ int apm_driver_http_rshutdown()
 void apm_driver_http_insert_slow_request(float duration, char * script_filename)
 {
   // @TODO: Record slow request here.
+}
+
+char * truncate_trace (const char * input_str, long str_len) {
+    char *buff = NULL;
+
+    /* Cannot do anything with NULL. */
+    if (input_str == NULL) return input_str;
+
+    /* Force negative lengths to return the input string */
+    if (str_len < 0)
+        return input_str;
+        /* str_len = strlen (&input_str[0]); */
+
+    /* Adjust length if source string too short. */
+    if (str_len > strlen (&input_str[0]))
+        str_len = strlen (&input_str[0]);
+
+    /* Get long enough string from heap, return NULL if no go. */
+    if ((buff = malloc (str_len + 1)) == NULL)
+      return NULL;
+
+    /* Transfer string section and return it. */
+    memcpy (buff, &(input_str[0]), str_len);
+    buff[str_len] = '\0';
+
+    return buff;
 }
 
 /* {{{ proto void apm_test_http()

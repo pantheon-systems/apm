@@ -2,7 +2,8 @@
  +----------------------------------------------------------------------+
  |  APM stands for Alternative PHP Monitor                              |
  +----------------------------------------------------------------------+
- | Copyright (c) 2008-2010  Davide Mendolia, Patrick Allaert            |
+ | Copyright (c) 2008-2012  Davide Mendolia, Patrick Allaert,           |
+ |                          David Strauss                               |
  +----------------------------------------------------------------------+
  | This source file is subject to version 3.01 of the PHP license,      |
  | that is bundled with this package in the file LICENSE, and is        |
@@ -333,12 +334,14 @@ void apm_error_cb(int type, const char *error_filename, const uint error_lineno,
 		vspprintf(&msg, 0, format, args_copy);
 		va_end(args_copy);
 
+		// Pantheon: We shouldn't be filtering out exceptions here.
+    
 		/* We need to see if we have an uncaught exception fatal error now */
-		if (type == E_ERROR && strncmp(msg, "Uncaught exception", 18) == 0) {
+		//if (type == E_ERROR && strncmp(msg, "Uncaught exception", 18) == 0) {
 
-		} else {
+		//} else {
 			insert_event(type, (char *) error_filename, error_lineno, msg TSRMLS_CC);
-		}
+		//}
 		efree(msg);
 	}
 
@@ -365,7 +368,8 @@ void apm_throw_exception_hook(zval *exception TSRMLS_DC)
 		file =    zend_read_property(default_ce, exception, "file",    sizeof("file")-1,    0 TSRMLS_CC);
 		line =    zend_read_property(default_ce, exception, "line",    sizeof("line")-1,    0 TSRMLS_CC);
 
-		insert_event(E_ERROR, Z_STRVAL_P(file), Z_LVAL_P(line), Z_STRVAL_P(message) TSRMLS_CC);
+		// Pantheon: We don't want to be reporting caught exceptions.
+		//insert_event(E_ERROR, Z_STRVAL_P(file), Z_LVAL_P(line), Z_STRVAL_P(message) TSRMLS_CC);
 	}
 }
 

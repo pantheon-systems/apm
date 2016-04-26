@@ -20,7 +20,11 @@
 #include "php_apm.h"
 #include "php_ini.h"
 #include "driver_mysql.h"
+#if PHP_VERSION_ID >= 70000
+#include "ext/standard/php_smart_string.h"
+#else
 #include "ext/standard/php_smart_str.h"
+#endif
 
 static long get_table_count(char * table);
 
@@ -230,7 +234,7 @@ file, line, message, backtrace FROM event ORDER BY %ld %s LIMIT %ld OFFSET %ld",
 					   row[2], odd ? "odd" : "even", row[0], row[1], row[2], row[3], row[4], row[5], row[6]);
 			odd = !odd;
 		}
-	
+
 		php_printf("</table>");
 	} else {
 		smart_str file = {0};
@@ -387,7 +391,7 @@ PHP_FUNCTION(apm_get_mysql_event_info)
 
 	result = mysql_use_result(connection);
 
-	
+
 	if (!(row = mysql_fetch_row(result))) {
 		mysql_free_result(result);
 		RETURN_FALSE;

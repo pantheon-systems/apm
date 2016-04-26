@@ -19,7 +19,11 @@
 
 #include "php.h"
 #include "zend_types.h"
+#if PHP_VERSION_ID >= 70000
+#include "ext/standard/php_smart_string.h"
+#else
 #include "ext/standard/php_smart_str.h"
+#endif
 
 static void debug_print_backtrace_args(zval *arg_array TSRMLS_DC, smart_str *trace_str);
 static void append_flat_zval_r(zval *expr TSRMLS_DC, smart_str *trace_str);
@@ -355,7 +359,7 @@ static zval *debug_backtrace_get_args(void ***curpos TSRMLS_DC)
 	void **p = *curpos - 2;
 #endif
 	zval *arg_array, **arg;
-	int arg_count = 
+	int arg_count =
 #if PHP_VERSION_ID >= 50202
 	(int)(zend_uintptr_t)
 #else

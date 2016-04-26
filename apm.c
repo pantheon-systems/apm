@@ -37,7 +37,11 @@
 #include "php_apm.h"
 #include "backtrace.h"
 #include "ext/standard/info.h"
+#if PHP_VERSION_ID >= 70000
+#include "ext/standard/php_smart_string.h"
+#else
 #include "ext/standard/php_smart_str.h"
+#endif
 #ifdef APM_DRIVER_MYSQL
   #include "driver_mysql.h"
 #endif
@@ -90,7 +94,7 @@ zend_module_entry apm_module_entry = {
 	apm_functions,
 	PHP_MINIT(apm),
 	PHP_MSHUTDOWN(apm),
-	PHP_RINIT(apm),	
+	PHP_RINIT(apm),
 	PHP_RSHUTDOWN(apm),
 	PHP_MINFO(apm),
 #if ZEND_MODULE_API_NO >= 20010901
@@ -165,7 +169,7 @@ PHP_MINIT_FUNCTION(apm)
 
 	/* Storing actual error callback function for later restore */
 	old_error_cb = zend_error_cb;
-	
+
 	if (APM_G(enabled)) {
 		apm_driver_entry * driver_entry;
 
@@ -309,8 +313,8 @@ PHP_MINFO_FUNCTION(apm)
    This function provides a hook for error */
 void apm_error_cb(int type, const char *error_filename, const uint error_lineno, const char *format, va_list args)
 {
-	TSRMLS_FETCH();	
-  
+	TSRMLS_FETCH();
+
 	if (APM_G(event_enabled)) {
 		char *msg;
 		va_list args_copy;
@@ -321,7 +325,7 @@ void apm_error_cb(int type, const char *error_filename, const uint error_lineno,
 		va_end(args_copy);
 
 		// Pantheon: We shouldn't be filtering out exceptions here.
-    
+
 		/* We need to see if we have an uncaught exception fatal error now */
 		//if (type == E_ERROR && strncmp(msg, "Uncaught exception", 18) == 0) {
 
@@ -379,7 +383,7 @@ static void insert_event(int type, char * error_filename, uint error_lineno, cha
 		} else {
 			(*APM_G(last_event))->next->event.error_filename = NULL;
 		}
-		
+
 		(*APM_G(last_event))->next->event.error_lineno = error_lineno;
 
 

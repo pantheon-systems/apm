@@ -41,6 +41,9 @@
 #include "ext/standard/php_smart_string.h"
 #else
 #include "ext/standard/php_smart_str.h"
+#define smart_str smart_string
+#define smart_str_free smart_string_free
+#define smart_str0 smart_string0
 #endif
 #ifdef APM_DRIVER_HTTP
   #include "driver_http.h"
@@ -352,12 +355,12 @@ void apm_throw_exception_hook(zval *exception TSRMLS_DC)
 /* Insert an event in the backend */
 static void insert_event(int type, char * error_filename, uint error_lineno, char * msg TSRMLS_DC)
 {
-  smart_str trace_str = {0};
+  smart_string trace_str = {0};
 	apm_driver_entry * driver_entry;
 
 	if (APM_G(stacktrace_enabled)) {
 		append_backtrace(&trace_str TSRMLS_CC);
-		smart_str_0(&trace_str);
+		smart_string_0(&trace_str);
 	}
 
 	if (APM_G(deferred_processing)) {
@@ -396,5 +399,5 @@ static void insert_event(int type, char * error_filename, uint error_lineno, cha
 		}
 	}
 
-	smart_str_free(&trace_str);
+	smart_string_free(&trace_str);
 }

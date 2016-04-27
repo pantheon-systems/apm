@@ -24,9 +24,10 @@
 #include "ext/standard/php_smart_string.h"
 #else
 #include "ext/standard/php_smart_str.h"
+#define smart_str smart_string
 #endif
 
-void append_backtrace(smart_str *trace_str TSRMLS_DC);
+void append_backtrace(smart_string *trace_str TSRMLS_DC);
 
 #endif
 

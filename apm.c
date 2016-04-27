@@ -42,9 +42,6 @@
 #else
 #include "ext/standard/php_smart_str.h"
 #endif
-#ifdef APM_DRIVER_MYSQL
-  #include "driver_mysql.h"
-#endif
 #ifdef APM_DRIVER_HTTP
   #include "driver_http.h"
 #endif
@@ -73,13 +70,6 @@ static void insert_event(int, char *, uint, char * TSRMLS_DC);
 struct timeval begin_tp;
 
 zend_function_entry apm_functions[] = {
-#ifdef APM_DRIVER_MYSQL
-		PHP_FE(apm_get_mysql_events, NULL)
-		PHP_FE(apm_get_mysql_slow_requests, NULL)
-		PHP_FE(apm_get_mysql_events_count, NULL)
-		PHP_FE(apm_get_mysql_slow_requests_count, NULL)
-		PHP_FE(apm_get_mysql_event_info, NULL)
-#endif
 #ifdef APM_DRIVER_HTTP
 		PHP_FE(apm_test_http, NULL)
 #endif
@@ -139,10 +129,6 @@ static PHP_GINIT_FUNCTION(apm)
 
 	next = &apm_globals->drivers->next;
 	*next = (apm_driver_entry *) NULL;
-#ifdef APM_DRIVER_MYSQL
-	*next = apm_driver_mysql_create();
-	next = &(*next)->next;
-#endif
 #ifdef APM_DRIVER_HTTP
 	*next = apm_driver_http_create();
 	next = &(*next)->next;

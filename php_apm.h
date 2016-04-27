@@ -113,13 +113,6 @@ PHP_RINIT_FUNCTION(apm);
 PHP_RSHUTDOWN_FUNCTION(apm);
 PHP_MINFO_FUNCTION(apm);
 
-#ifdef APM_DRIVER_MYSQL
-PHP_FUNCTION(apm_get_mysql_events);
-PHP_FUNCTION(apm_get_mysql_slow_requests);
-PHP_FUNCTION(apm_get_mysql_events_count);
-PHP_FUNCTION(apm_get_mysql_slow_requests_count);
-PHP_FUNCTION(apm_get_mysql_event_info);
-#endif
 #ifdef APM_DRIVER_HTTP
 PHP_FUNCTION(apm_test_http);
 #endif
